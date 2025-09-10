@@ -1,0 +1,30 @@
+image:
+  repository: 242266627552.dkr.ecr.eu-central-1.amazonaws.com/lesson-7-ecr
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 8000
+
+resources:
+requests:
+cpu: 100m
+memory: 256Mi
+limits:
+  cpu: 500m
+  memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+
+config:
+  DJANGO_SETTINGS_MODULE: "project.settings"
+  DJANGO_DEBUG: "false"
+  DJANGO_SECRET_KEY: "admin123"
+  ALLOWED_HOSTS: "*"
+  DATABASE_URL: "postgres://lesson7user:admin123@database-django.cpeyeqioivrd.eu-central-1.rds.amazonaws.com:5432/lesson7db"
