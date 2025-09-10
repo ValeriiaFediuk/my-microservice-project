@@ -15,7 +15,7 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-ff_r@cqw$x8dp!$89@8y5!_f*7wf7x_8@3)48vz!l$jy)-^f6('
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "unsafe-default-key")
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
@@ -62,10 +62,10 @@ WSGI_APPLICATION = 'project.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("POSTGRES_DB", "mydb"),
-        "USER": os.environ.get("POSTGRES_USER", "myuser"),
-        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "mypassword"),
-        "HOST": "db",
+        "NAME": os.environ.get("POSTGRES_DB", "lesson7db"),
+        "USER": os.environ.get("POSTGRES_USER", "lesson7user"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "admin123"),
+        "HOST": "lesson7db",
         "PORT": 5432,
     }
 }

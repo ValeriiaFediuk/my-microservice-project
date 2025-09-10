@@ -28,3 +28,10 @@ module "eks" {
   max_size      = 3                             
   min_size      = 1                             
 }
+
+module "rds" {
+  source        = "./modules/rds"
+  db_name     = var.db_name
+  db_user     = var.db_user
+  db_password = var.db_password
+}

@@ -1,10 +1,17 @@
 # Terraform Lesson 5 - AWS Infrastructure
 
 ## Опис проєкту
-Цей проєкт демонструє використання Terraform для створення інфраструктури на AWS з модульним підходом. Інфраструктура включає:
-1. Зберігання Terraform state у S3 з блокуванням через DynamoDB.
-2. Мережеву інфраструктуру (VPC) з публічними та приватними підмережами, Internet Gateway і NAT Gateway.
-3. ECR (Elastic Container Registry) для зберігання Docker-образів.
+Мета проєкту — створити кластер Kubernetes у вже існуючій VPC, налаштувати ECR для Docker-образу Django-застосунку та розгорнути застосунок у кластері за допомогою Helm-чарту.
+
+## Основні компоненти:
+Кластер Kubernetes через Terraform.
+ECR для зберігання Docker-образу Django.
+Docker-образ завантажено у ECR.
+Helm-чарт із:
+Deployment (Django + ConfigMap)
+Service (LoadBalancer)
+HPA (масштабування 2-6 подів при >70% CPU)
+ConfigMap (змінні середовища)
 
 ---
 
@@ -35,23 +42,26 @@
 - Outputs:
   - `repository_url` – URL ECR репозиторію.
 
+### 4. eks
+- Створює кластер Kubernetes (EKS) у вказаних підмережах.
+- Підключає Node Group з EC2 інстансами.
+- Outputs:
+  - `cluster_name` – назва кластера.
+  - `cluster_endpoint` – URL API кластера.
+  - `eks_node_role_arn` – ARN ролі для нод.
+  - `subnet_ids` – ID підмереж, де розгорнуті ноди.
+
+### 5. rds
+- Створює базу даних PostgreSQL (RDS).
+- Надає користувача та пароль для підключення.
+- Outputs:
+  - `db_endpoint` – кінцева точка RDS.
+  - `db_name` – назва бази.
+  - `db_user` – користувач бази.
+
 ---
 
-## Налаштування бекенду Terraform
-```hcl
-terraform {
-  backend "s3" {
-    bucket         = "terraform-state-bucket-fediuk-001"
-    key            = "lesson-5/terraform.tfstate"   
-    region         = "eu-central-1"                    
-    dynamodb_table = "terraform-locks"              
-    encrypt        = true                           
-  }
-}
-```
----
-
-## Команди для роботи з Terraform
+## Кроки виконання
 
 1. Ініціалізація проєкту та модулів:
 
@@ -71,14 +81,32 @@ terraform plan
 terraform apply
 ```
 
-4. Видалення інфраструктури:
+4. Підключення до EKS:
 
 ```bash
-terraform destroy
+aws eks --region eu-central-1 update-kubeconfig --name eks-cluster-fediuk
+kubectl get nodes
 ```
 
-5. Перегляд вихідних даних:
+5. Підготовка Docker-образу:
 
 ```bash
-terraform output
+docker build -t django-app .
+aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin <ECR_REPO_URL>
+docker tag django-app:latest <ECR_REPO_URL>:latest
+docker push <ECR_REPO_URL>:latest
 ```
+
+6. Розгортання Helm-чарту:
+
+```bash
+helm upgrade --install django-app ./charts/django-app -n django --create-namespace
+```
+
+7. Перевірка подів і сервісу
+
+```bash
+kubectl get pods,svc -n django
+```
+* Поди мають бути `Running`.
+* Service типу `LoadBalancer` з EXTERNAL-IP.
