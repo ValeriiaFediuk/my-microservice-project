@@ -1,112 +1,48 @@
 # Lesson 9
 
 ## Опис проєкту
-Мета проєкту — створити кластер Kubernetes у вже існуючій VPC, налаштувати ECR для Docker-образу Django-застосунку та розгорнути застосунок у кластері за допомогою Helm-чарту.
-
-## Основні компоненти:
-Кластер Kubernetes через Terraform.
-ECR для зберігання Docker-образу Django.
-Docker-образ завантажено у ECR.
-Helm-чарт із:
-Deployment (Django + ConfigMap)
-Service (LoadBalancer)
-HPA (масштабування 2-6 подів при >70% CPU)
-ConfigMap (змінні середовища)
+Цей проєкт демонструє розгортання Kubernetes-кластера через Terraform, налаштування ECR, Jenkins pipeline для CI/CD та управління додатками через Argo CD.
 
 ---
 
-## Модулі та їх призначення
+## 1. Terraform
 
-### 1. s3-backend
-- Створює S3-бакет для зберігання Terraform state.
-- Вмикає версіонування S3-бакета.
-- Створює таблицю DynamoDB для блокування стейтів.
-- Outputs:
-  - `s3_bucket_name` – назва бакета.
-  - `dynamodb_table_name` – назва таблиці блокування.
-
-### 2. vpc
-- Створює VPC з CIDR блоком.
-- Додає 3 публічні та 3 приватні підмережі.
-- Створює Internet Gateway та NAT Gateway.
-- Налаштовує маршрутизацію через Route Tables.
-- Outputs:
-  - `vpc_id` – ID створеної VPC.
-  - `public_subnets` – список ID публічних підмереж.
-  - `private_subnets` – список ID приватних підмереж.
-  - `internet_gateway_id` – ID Internet Gateway.
-
-### 3. ecr
-- Створює ECR репозиторій.
-- Автоматичне сканування образів при пуші.
-- Outputs:
-  - `repository_url` – URL ECR репозиторію.
-
-### 4. eks
-- Створює кластер Kubernetes (EKS) у вказаних підмережах.
-- Підключає Node Group з EC2 інстансами.
-- Outputs:
-  - `cluster_name` – назва кластера.
-  - `cluster_endpoint` – URL API кластера.
-  - `eks_node_role_arn` – ARN ролі для нод.
-  - `subnet_ids` – ID підмереж, де розгорнуті ноди.
-
-### 5. rds
-- Створює базу даних PostgreSQL (RDS).
-- Надає користувача та пароль для підключення.
-- Outputs:
-  - `db_endpoint` – кінцева точка RDS.
-  - `db_name` – назва бази.
-  - `db_user` – користувач бази.
-
----
-
-## Кроки виконання
-
-1. Ініціалізація проєкту та модулів:
+### 1. Ініціалізація та застосування інфраструктури:
 
 ```bash
 terraform init
-```
-
-2. Перевірка планованих змін:
-
-```bash
 terraform plan
-```
-
-3. Створення інфраструктури:
-
-```bash
 terraform apply
 ```
-
-4. Підключення до EKS:
-
+### 2. Перевірка ресурсів:
 ```bash
-aws eks --region eu-central-1 update-kubeconfig --name eks-cluster-fediuk
+terraform output
+kubectl get ns
 kubectl get nodes
+kubectl get svc -n django
 ```
 
-5. Підготовка Docker-образу:
-
+## 2. Jenkins
+- URL сервісу:
 ```bash
-docker build -t django-app .
-aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin <ECR_REPO_URL>
-docker tag django-app:latest <ECR_REPO_URL>:latest
-docker push <ECR_REPO_URL>:latest
+kubectl get svc -n jenkins
 ```
+- Jenkinsfile збирає Docker-образ, пушить його в ECR та оновлює Helm-чарт.
+- Перевірка job: **Jenkins UI → Job → Console Output.**
 
-6. Розгортання Helm-чарту:
-
+## 3. Argo CD
+- Порт-форвард для доступу до UI:
 ```bash
-helm upgrade --install django-app ./charts/django-app -n django --create-namespace
+kubectl port-forward svc/argo-cd-argocd-server -n argocd 8080:443
 ```
-
-7. Перевірка подів і сервісу
-
+- Відкрити у браузері: **https://localhost:8080**
+- Логін:**admin**
+- Пароль:
 ```bash
-kubectl get pods,svc -n django
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
-* Поди мають бути `Running`.
-* Service типу `LoadBalancer` з EXTERNAL-IP.
+- Додати Application:
+  - Репозиторій: GitHub
+  - Path: **lesson-5/charts/django-app**
+  - Branch: **lesson-9**
+- Перевірка стану: **Application Synced / Healthy**, podи та service працюють.
