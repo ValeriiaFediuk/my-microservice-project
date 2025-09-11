@@ -1,4 +1,4 @@
-# Terraform Lesson 5 - AWS Infrastructure
+# Lesson 9
 
 ## Опис проєкту
 Мета проєкту — створити кластер Kubernetes у вже існуючій VPC, налаштувати ECR для Docker-образу Django-застосунку та розгорнути застосунок у кластері за допомогою Helm-чарту.

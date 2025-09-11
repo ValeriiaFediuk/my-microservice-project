@@ -32,9 +32,31 @@ output "eks_cluster_endpoint" {
   description = "EKS API endpoint for connecting to the cluster"
   value       = module.eks.eks_cluster_endpoint
 }
+
 output "eks_cluster_name" {
   value       = module.eks.eks_cluster_name
 }
+
 output "eks_node_role_arn" {
   value       = module.eks.eks_node_role_arn
+}
+
+output "oidc_provider_arn" {
+  description = "OIDC Provider ARN"
+  value       = module.eks.oidc_provider_arn
+}
+
+output "oidc_provider_url" {
+  description = "OIDC Provider URL"
+  value       = module.eks.oidc_provider_url
+}
+
+output "jenkins_release" {
+  description = "Jenkins release name"
+  value       = module.jenkins.jenkins_release_name
+}
+
+output "jenkins_namespace" {
+  description = "Jenkins namespace"
+  value       = module.jenkins.jenkins_namespace
 }
