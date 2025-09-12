@@ -1,5 +1,4 @@
-output "database_url" {
-  value = "postgres://${var.db_user}:${var.db_password}@${aws_db_instance.postgres.address}:${aws_db_instance.postgres.port}/${var.db_name}"
-  description = "Connection string for the PostgreSQL database"
-  sensitive = true
+output "rds_endpoint" {
+  description = "RDS endpoint for connecting to the database"
+  value       = var.use_aurora ? aws_rds_cluster.aurora[0].endpoint : aws_db_instance.standard[0].endpoint
 }

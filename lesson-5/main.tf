@@ -19,13 +19,6 @@ module "ecr" {
   scan_on_push = true
 }
 
-module "rds" {
-  source        = "./modules/rds"
-  db_name     = var.db_name
-  db_user     = var.db_user
-  db_password = var.db_password
-}
-
 module "eks" {
   source        = "./modules/eks"
   cluster_name  = var.cluster_name              
@@ -80,4 +73,42 @@ module "argo_cd" {
   namespace    = "argocd"
   chart_version = "5.46.4"
   depends_on    = [module.eks]
+}
+
+module "rds" {
+  source = "./modules/rds"
+  name                = var.name
+  use_aurora          = var.use_aurora
+  db_name             = var.db_name
+  username            = var.username
+  password            = var.password
+  instance_class      = var.instance_class
+  engine              = var.engine
+  engine_version      = var.engine_version
+  engine_cluster      = var.engine_cluster
+  engine_version_cluster = var.engine_version_cluster
+  multi_az            = var.multi_az
+  publicly_accessible = var.publicly_accessible
+  backup_retention_period = var.backup_retention_period
+  aurora_replica_count    = var.aurora_replica_count
+
+  vpc_id             = module.vpc.vpc_id
+  vpc_cidr_block     = var.vpc_cidr_block
+  subnet_private_ids = module.vpc.private_subnets
+  subnet_public_ids  = module.vpc.public_subnets
+
+  parameter_group_family_rds    = var.parameter_group_family_rds
+  parameter_group_family_aurora = var.parameter_group_family_aurora
+
+  parameters = {
+    max_connections = "200"
+    log_statement   = "none"
+    work_mem        = "4096"
+  }
+
+  tags = {
+    Environment = var.environment
+    Project     = var.project
+  }
+  depends_on = [module.vpc]
 }
