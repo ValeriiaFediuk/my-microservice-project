@@ -82,7 +82,7 @@ stage('Update Chart Tag in Git') {
         sh '''
           cd my-microservice-project
           git checkout final-project
-          cd charts/django-app
+          cd lesson-5/charts/django-app
           sed -i "s/tag: .*/tag: $IMAGE_TAG/" values.yaml
           git config user.email "$COMMIT_EMAIL"
           git config user.name "$COMMIT_NAME"
