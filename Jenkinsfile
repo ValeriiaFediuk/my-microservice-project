@@ -54,7 +54,7 @@ spec:
           git clone https://$GITHUB_USER:$GITHUB_PAT@github.com/$GITHUB_USER/my-microservice-project.git
           cd my-microservice-project
           git checkout final-project
-          cd django
+          cd django_app
           cp -r . /workspace/
         '''
       }
