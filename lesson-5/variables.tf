@@ -83,7 +83,7 @@ variable "engine" {
 
 variable "engine_version" {
   type    = string
-  default = "15.8"
+  default = "15.12"
 }
 
 variable "engine_cluster" {
@@ -93,7 +93,7 @@ variable "engine_cluster" {
 
 variable "engine_version_cluster" {
   type    = string
-  default = "15.8"
+  default = "15.12"
 }
 
 variable "instance_class" {

@@ -51,9 +51,9 @@ spec:
           passwordVariable: 'GITHUB_PAT'
       )]) {
         sh '''
-          git clone https://$GITHUB_USER:$GITHUB_PAT@github.com/$GITHUB_USER/goit-devops-hw.git
+          git clone https://$GITHUB_USER:$GITHUB_PAT@github.com/$GITHUB_USER/my-microservice-project.git
           cd my-microservice-project
-          git checkout lesson-9
+          git checkout final-project
           cd django
           cp -r . /workspace/
         '''
@@ -81,14 +81,14 @@ stage('Update Chart Tag in Git') {
       )]) {
         sh '''
           cd my-microservice-project
-          git checkout lesson-9
+          git checkout final-project
           cd charts/django-app
           sed -i "s/tag: .*/tag: $IMAGE_TAG/" values.yaml
           git config user.email "$COMMIT_EMAIL"
           git config user.name "$COMMIT_NAME"
           git add values.yaml
           git commit -m "Update image tag to $IMAGE_TAG"
-          git push origin lesson-9
+          git push origin final-project
         '''
       }
     }
